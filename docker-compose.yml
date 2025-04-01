@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  db:
+    build: .
+    container_name: kart_database
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=kart_database
+      - POSTGRES_USER=kart_admin
+      - POSTGRES_PASSWORD=CHANGE_ADMIN_PASSWORD
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - backup_data:/var/backups/kart
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kart_admin -d kart_database"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    networks:
+      - kart_network
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: kart_api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://kart_admin:CHANGE_ADMIN_PASSWORD@db:5432/kart_database
+      - SECRET_KEY=your-secret-key-here
+      - ALGORITHM=HS256
+      - ACCESS_TOKEN_EXPIRE_MINUTES=30
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./app:/app/app
+    networks:
+      - kart_network
+
+volumes:
+  postgres_data:
+    name: kart_postgres_data
+  backup_data:
+    name: kart_backup_data
+
+networks:
+  kart_network:
+    name: kart_network
+    driver: bridge 
