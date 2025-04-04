@@ -1,146 +1,211 @@
--- Function for updating timestamps
-CREATE OR REPLACE FUNCTION update_updated_at_column()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.updated_at = CURRENT_TIMESTAMP;
-    RETURN NEW;
-END;
-$$ language 'plpgsql';
-
--- Function to perform backup
-CREATE OR REPLACE FUNCTION perform_backup(
-    p_backup_type VARCHAR(50),
-    p_backup_path VARCHAR(255)
-) RETURNS INTEGER AS $$
+-- Function to get project duration in years
+CREATE OR REPLACE FUNCTION get_project_duration(project_id INTEGER)
+RETURNS INTEGER AS $$
 DECLARE
-    v_backup_id INTEGER;
-    v_config_id INTEGER;
+    start_year INTEGER;
+    end_year INTEGER;
 BEGIN
-    -- Get backup configuration
-    SELECT id INTO v_config_id
-    FROM backup_config
-    WHERE backup_type = p_backup_type AND is_active = TRUE;
+    SELECT p.start_year, p.end_year
+    INTO start_year, end_year
+    FROM projects p
+    WHERE p.id = project_id;
 
-    IF v_config_id IS NULL THEN
-        RAISE EXCEPTION 'No active backup configuration found for type %', p_backup_type;
+    IF end_year IS NULL THEN
+        RETURN EXTRACT(YEAR FROM CURRENT_DATE) - start_year;
+    ELSE
+        RETURN end_year - start_year;
     END IF;
-
-    -- Insert backup history record
-    INSERT INTO backup_history (
-        backup_config_id, start_time, status
-    ) VALUES (
-        v_config_id, CURRENT_TIMESTAMP, 'STARTED'
-    ) RETURNING id INTO v_backup_id;
-
-    -- Perform backup based on type
-    CASE p_backup_type
-        WHEN 'FULL' THEN
-            -- Perform full backup using pg_dump
-            PERFORM pg_execute('pg_dump -Fc -f ' || p_backup_path || '/' || 
-                             to_char(CURRENT_TIMESTAMP, 'YYYYMMDD_HH24MISS') || '.dump kart_database');
-        WHEN 'INCREMENTAL' THEN
-            -- Perform incremental backup using pg_basebackup
-            PERFORM pg_execute('pg_basebackup -D ' || p_backup_path || '/' || 
-                             to_char(CURRENT_TIMESTAMP, 'YYYYMMDD_HH24MISS'));
-        WHEN 'WAL' THEN
-            -- Archive WAL files
-            PERFORM pg_switch_wal();
-    END CASE;
-
-    -- Update backup history record
-    UPDATE backup_history
-    SET status = 'COMPLETED',
-        end_time = CURRENT_TIMESTAMP
-    WHERE id = v_backup_id;
-
-    RETURN v_backup_id;
-EXCEPTION WHEN OTHERS THEN
-    -- Update backup history record with error
-    UPDATE backup_history
-    SET status = 'FAILED',
-        end_time = CURRENT_TIMESTAMP,
-        error_message = SQLERRM
-    WHERE id = v_backup_id;
-    
-    RAISE;
 END;
 $$ LANGUAGE plpgsql;
 
--- Function to clean up old backups
-CREATE OR REPLACE FUNCTION cleanup_old_backups() RETURNS void AS $$
-DECLARE
-    v_config RECORD;
-BEGIN
-    FOR v_config IN 
-        SELECT * FROM backup_config WHERE is_active = TRUE
-    LOOP
-        -- Delete old backup files based on retention period
-        PERFORM pg_execute('find ' || v_config.backup_path || 
-                         ' -type f -mtime +' || v_config.retention_days || 
-                         ' -delete');
-    END LOOP;
-END;
-$$ LANGUAGE plpgsql;
-
--- Function to check backup status
-CREATE OR REPLACE FUNCTION check_backup_status() RETURNS TABLE (
-    backup_type VARCHAR(50),
-    last_backup TIMESTAMP WITH TIME ZONE,
-    status VARCHAR(50),
-    size_bytes BIGINT,
-    error_message TEXT
+-- Function to get all projects for a specific owner
+CREATE OR REPLACE FUNCTION get_owner_projects(owner_name VARCHAR)
+RETURNS TABLE (
+    project_id INTEGER,
+    project_title VARCHAR,
+    project_status project_status,
+    start_year INTEGER,
+    end_year INTEGER,
+    sector project_sector,
+    management_level project_management_level
 ) AS $$
 BEGIN
     RETURN QUERY
     SELECT 
-        bc.backup_type,
-        MAX(bh.start_time) as last_backup,
-        MAX(bh.status) as status,
-        MAX(bh.size_bytes) as size_bytes,
-        MAX(bh.error_message) as error_message
-    FROM backup_config bc
-    LEFT JOIN backup_history bh ON bc.id = bh.backup_config_id
-    WHERE bc.is_active = TRUE
-    GROUP BY bc.backup_type;
+        p.id,
+        p.title,
+        p.status,
+        p.start_year,
+        p.end_year,
+        p.sector,
+        p.managment_level
+    FROM projects p
+    JOIN projects_owners po ON p.id = po.project_id
+    JOIN owners o ON po.owner_id = o.id
+    WHERE o.name = owner_name;
 END;
 $$ LANGUAGE plpgsql;
 
--- Function to monitor backup health
-CREATE OR REPLACE FUNCTION monitor_backup_health() RETURNS TABLE (
-    backup_type VARCHAR(50),
-    status VARCHAR(50),
-    last_backup TIMESTAMP WITH TIME ZONE,
-    hours_since_last_backup NUMERIC,
-    is_healthy BOOLEAN
+-- Function to get project statistics by sector
+CREATE OR REPLACE FUNCTION get_sector_statistics()
+RETURNS TABLE (
+    sector project_sector,
+    total_projects INTEGER,
+    active_projects INTEGER,
+    completed_projects INTEGER,
+    avg_duration_years NUMERIC
 ) AS $$
 BEGIN
     RETURN QUERY
     SELECT 
-        bc.backup_type,
-        MAX(bh.status) as status,
-        MAX(bh.start_time) as last_backup,
-        EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - MAX(bh.start_time))) / 3600 as hours_since_last_backup,
-        CASE 
-            WHEN MAX(bh.start_time) IS NULL THEN FALSE
-            WHEN EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - MAX(bh.start_time))) / 3600 > 24 THEN FALSE
-            WHEN MAX(bh.status) = 'FAILED' THEN FALSE
-            ELSE TRUE
-        END as is_healthy
-    FROM backup_config bc
-    LEFT JOIN backup_history bh ON bc.id = bh.backup_config_id
-    WHERE bc.is_active = TRUE
-    GROUP BY bc.backup_type;
+        p.sector,
+        COUNT(*) as total_projects,
+        COUNT(CASE WHEN p.status = 'IN_PROGRESS' THEN 1 END) as active_projects,
+        COUNT(CASE WHEN p.status = 'COMPLETED' THEN 1 END) as completed_projects,
+        ROUND(AVG(get_project_duration(p.id)), 1) as avg_duration_years
+    FROM projects p
+    GROUP BY p.sector;
 END;
 $$ LANGUAGE plpgsql;
 
--- Function for alerting backup failures
-CREATE OR REPLACE FUNCTION alert_backup_failure() RETURNS TRIGGER AS $$
+-- Function to search projects by text
+CREATE OR REPLACE FUNCTION search_projects(search_text TEXT)
+RETURNS TABLE (
+    project_id INTEGER,
+    project_title VARCHAR,
+    project_status project_status,
+    sector project_sector,
+    start_year INTEGER,
+    description TEXT,
+    notes TEXT
+) AS $$
 BEGIN
-    IF NEW.status = 'FAILED' THEN
-        -- Here you would implement your alert mechanism (email, SMS, etc.)
-        -- For example, you could insert into an alerts table or call an external service
-        RAISE NOTICE 'Backup failed for type %: %', NEW.backup_type, NEW.error_message;
-    END IF;
-    RETURN NEW;
+    RETURN QUERY
+    SELECT 
+        p.id,
+        p.title,
+        p.status,
+        p.sector,
+        p.start_year,
+        p.description,
+        p.notes
+    FROM projects p
+    WHERE 
+        to_tsvector('english', COALESCE(p.title, '') || ' ' || 
+                             COALESCE(p.description, '') || ' ' || 
+                             COALESCE(p.notes, '')) @@ plainto_tsquery('english', search_text);
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function to get projects by location
+CREATE OR REPLACE FUNCTION get_projects_by_location(city_name VARCHAR, county_name VARCHAR)
+RETURNS TABLE (
+    project_id INTEGER,
+    project_title VARCHAR,
+    project_status project_status,
+    sector project_sector,
+    start_year INTEGER,
+    end_year INTEGER,
+    management_level project_management_level
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        p.id,
+        p.title,
+        p.status,
+        p.sector,
+        p.start_year,
+        p.end_year,
+        p.managment_level
+    FROM projects p
+    JOIN projects_locations pl ON p.id = pl.project_id
+    JOIN addresses a ON pl.location_id = a.id
+    WHERE a.city = city_name AND a.county = county_name;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function to get project benefits
+CREATE OR REPLACE FUNCTION get_project_benefits(project_id INTEGER)
+RETURNS TABLE (
+    benefit_name VARCHAR,
+    benefit_description TEXT
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        b.name,
+        b.description
+    FROM benefits b
+    JOIN projects_benefits pb ON b.id = pb.benefit_id
+    WHERE pb.project_id = project_id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function to get project contacts
+CREATE OR REPLACE FUNCTION get_project_contacts(project_id INTEGER)
+RETURNS TABLE (
+    contact_name VARCHAR,
+    contact_email VARCHAR
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        c.name,
+        c.email
+    FROM contacts c
+    JOIN projects_contacts pc ON c.id = pc.contact_id
+    WHERE pc.project_id = project_id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function to get projects by management level
+CREATE OR REPLACE FUNCTION get_projects_by_management_level(level project_management_level)
+RETURNS TABLE (
+    project_id INTEGER,
+    project_title VARCHAR,
+    project_status project_status,
+    sector project_sector,
+    start_year INTEGER,
+    end_year INTEGER,
+    owner_names TEXT
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        p.id,
+        p.title,
+        p.status,
+        p.sector,
+        p.start_year,
+        p.end_year,
+        string_agg(o.name, ', ') as owner_names
+    FROM projects p
+    JOIN projects_owners po ON p.id = po.project_id
+    JOIN owners o ON po.owner_id = o.id
+    WHERE p.managment_level = level
+    GROUP BY p.id, p.title, p.status, p.sector, p.start_year, p.end_year;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function to get project timeline statistics
+CREATE OR REPLACE FUNCTION get_project_timeline_stats()
+RETURNS TABLE (
+    year INTEGER,
+    total_projects INTEGER,
+    active_projects INTEGER,
+    completed_projects INTEGER,
+    sectors TEXT[]
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        EXTRACT(YEAR FROM CURRENT_DATE) as year,
+        COUNT(*) as total_projects,
+        COUNT(CASE WHEN status = 'IN_PROGRESS' THEN 1 END) as active_projects,
+        COUNT(CASE WHEN status = 'COMPLETED' THEN 1 END) as completed_projects,
+        array_agg(DISTINCT sector) as sectors
+    FROM projects
+    GROUP BY EXTRACT(YEAR FROM CURRENT_DATE);
 END;
 $$ LANGUAGE plpgsql; 
