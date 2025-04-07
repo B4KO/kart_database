@@ -14,6 +14,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - backup_data:/var/backups/kart
+      - ./sql:/sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U kart_admin -d kart_database"]
       interval: 30s
@@ -22,7 +23,7 @@ services:
       start_period: 30s
     networks:
       - kart_network
-
+  
   api:
     build:
       context: .

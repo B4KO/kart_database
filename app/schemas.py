@@ -1,13 +1,13 @@
 from pydantic import BaseModel, EmailStr, ConfigDict
 from typing import Optional, List
 from datetime import datetime
-from .models import ProjectStatus, ProjectSector, ProjectManagementLevel
+from .models import ProjectStatus, ProjectSector, ProjectManagementLevel, UserRole
 
 # User schemas
 class UserBase(BaseModel):
     username: str
     email: EmailStr
-    role: str
+    role: UserRole
 
 class UserCreate(UserBase):
     password: str

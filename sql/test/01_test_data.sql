@@ -14,20 +14,14 @@ INSERT INTO contacts (name, email) VALUES
 ('Bob Johnson', 'bob.johnson@example.com'),
 ('Alice Brown', 'alice.brown@example.com'),
 ('Charlie Wilson', 'charlie.wilson@example.com'),
-('Diana Miller', 'diana.miller@example.com'),
-('Ethan Davis', 'ethan.davis@example.com'),
-('Fiona Clark', 'fiona.clark@example.com');
+('Diana Miller', 'diana.miller@example.com');
 
 -- Insert test owners
 INSERT INTO owners (name, description) VALUES
 ('Ministry of Education', 'National education authority'),
 ('Local Council Cluj', 'Local government of Cluj county'),
 ('Tech Company SRL', 'Private technology company'),
-('Environmental NGO', 'Non-governmental organization focused on environmental protection'),
-('Ministry of Health', 'National health authority'),
-('Ministry of Environment', 'National environmental authority'),
-('Local Council Bucharest', 'Local government of Bucharest'),
-('Innovation Agency', 'Government agency for innovation');
+('Environmental NGO', 'Non-governmental organization focused on environmental protection');
 
 -- Insert test cooperators
 INSERT INTO cooperators (name) VALUES
@@ -36,9 +30,7 @@ INSERT INTO cooperators (name) VALUES
 ('Research Institute'),
 ('Innovation Hub'),
 ('University of Medicine'),
-('Environmental Research Center'),
-('Technology Transfer Office'),
-('Business Incubator');
+('Environmental Research Center');
 
 -- Insert test benefits
 INSERT INTO benefits (name, description) VALUES
@@ -47,9 +39,7 @@ INSERT INTO benefits (name, description) VALUES
 ('Environmental Impact', 'Reducing carbon footprint'),
 ('Social Inclusion', 'Promoting equal opportunities'),
 ('Health Improvement', 'Enhancing public health services'),
-('Education Quality', 'Improving educational outcomes'),
-('Urban Development', 'Modernizing city infrastructure'),
-('Research Advancement', 'Promoting scientific research');
+('Education Quality', 'Improving educational outcomes');
 
 -- Insert test locations
 INSERT INTO locations (address_id, name, description) VALUES
@@ -69,28 +59,28 @@ INSERT INTO projects (title, description, status, start_year, end_year, sector, 
 ('Environmental Research Program', 'Climate change research initiative', 'IN_PROGRESS', 2023, 2025, 'ENVIRONMENT', 'https://example.com/environment', 'Multi-regional research', 'NATIONAL'),
 ('Digital Health Platform', 'National healthcare digitalization', 'DRAFT', 2024, 2026, 'HEALTH', 'https://example.com/digital-health', 'Integration with existing systems', 'NATIONAL');
 
--- Link projects with owners (multiple owners per project)
+-- Link projects with owners (using only existing owner IDs)
 INSERT INTO projects_owners (project_id, owner_id) VALUES
 -- Digital Education Initiative
 (1, 1), -- Ministry of Education
-(1, 7), -- Local Council Bucharest
+(1, 2), -- Local Council Cluj
 -- Green City Project
 (2, 2), -- Local Council Cluj
-(2, 6), -- Ministry of Environment
+(2, 4), -- Environmental NGO
 -- Healthcare Innovation
-(3, 5), -- Ministry of Health
 (3, 3), -- Tech Company SRL
+(3, 1), -- Ministry of Education
 -- Smart Infrastructure
-(4, 7), -- Local Council Bucharest
-(4, 8), -- Innovation Agency
+(4, 2), -- Local Council Cluj
+(4, 3), -- Tech Company SRL
 -- Environmental Research Program
-(5, 6), -- Ministry of Environment
 (5, 4), -- Environmental NGO
+(5, 1), -- Ministry of Education
 -- Digital Health Platform
-(6, 5), -- Ministry of Health
-(6, 3); -- Tech Company SRL
+(6, 3), -- Tech Company SRL
+(6, 4); -- Environmental NGO
 
--- Link projects with contacts (multiple contacts per project)
+-- Link projects with contacts
 INSERT INTO projects_contacts (project_id, contact_id) VALUES
 -- Digital Education Initiative
 (1, 1), -- John Doe
@@ -100,18 +90,18 @@ INSERT INTO projects_contacts (project_id, contact_id) VALUES
 (2, 6), -- Diana Miller
 -- Healthcare Innovation
 (3, 3), -- Bob Johnson
-(3, 7), -- Ethan Davis
+(3, 4), -- Alice Brown
 -- Smart Infrastructure
 (4, 4), -- Alice Brown
-(4, 8), -- Fiona Clark
+(4, 5), -- Charlie Wilson
 -- Environmental Research Program
 (5, 1), -- John Doe
 (5, 2), -- Jane Smith
 -- Digital Health Platform
 (6, 3), -- Bob Johnson
-(6, 4); -- Alice Brown
+(6, 6); -- Diana Miller
 
--- Link projects with locations (multiple locations per project)
+-- Link projects with locations
 INSERT INTO projects_locations (project_id, location_id) VALUES
 -- Digital Education Initiative
 (1, 1), -- Main Office
@@ -132,11 +122,11 @@ INSERT INTO projects_locations (project_id, location_id) VALUES
 (6, 1), -- Main Office
 (6, 5); -- Health Center
 
--- Link projects with cooperators (multiple cooperators per project)
+-- Link projects with cooperators
 INSERT INTO projects_cooperators (project_id, cooperator_id) VALUES
 -- Digital Education Initiative
 (1, 1), -- University of Bucharest
-(1, 7), -- Technology Transfer Office
+(1, 4), -- Innovation Hub
 -- Green City Project
 (2, 2), -- Technical University of Cluj
 (2, 6), -- Environmental Research Center
@@ -145,31 +135,31 @@ INSERT INTO projects_cooperators (project_id, cooperator_id) VALUES
 (3, 3), -- Research Institute
 -- Smart Infrastructure
 (4, 4), -- Innovation Hub
-(4, 8), -- Business Incubator
+(4, 2), -- Technical University of Cluj
 -- Environmental Research Program
 (5, 3), -- Research Institute
 (5, 6), -- Environmental Research Center
 -- Digital Health Platform
 (6, 5), -- University of Medicine
-(6, 7); -- Technology Transfer Office
+(6, 1); -- University of Bucharest
 
--- Link projects with benefits (multiple benefits per project)
+-- Link projects with benefits
 INSERT INTO projects_benefits (project_id, benefit_id) VALUES
 -- Digital Education Initiative
 (1, 1), -- Digital Skills
 (1, 6), -- Education Quality
 -- Green City Project
 (2, 3), -- Environmental Impact
-(2, 7), -- Urban Development
+(2, 4), -- Social Inclusion
 -- Healthcare Innovation
 (3, 5), -- Health Improvement
 (3, 2), -- Economic Growth
 -- Smart Infrastructure
-(4, 7), -- Urban Development
 (4, 2), -- Economic Growth
+(4, 4), -- Social Inclusion
 -- Environmental Research Program
 (5, 3), -- Environmental Impact
-(5, 8), -- Research Advancement
+(5, 6), -- Education Quality
 -- Digital Health Platform
 (6, 5), -- Health Improvement
 (6, 1); -- Digital Skills 

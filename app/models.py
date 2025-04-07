@@ -4,6 +4,10 @@ from datetime import datetime
 from .database import Base
 import enum
 
+class UserRole(str, enum.Enum):
+    USER = "USER"
+    ADMIN = "ADMIN"
+
 class User(Base):
     __tablename__ = "users"
 
@@ -11,7 +15,7 @@ class User(Base):
     username = Column(String, unique=True, index=True)
     email = Column(String, unique=True, index=True)
     hashed_password = Column(String)
-    role = Column(String)  # Using roles enum from database
+    role = Column(Enum(UserRole, name="role"))
 
 class ProjectStatus(str, enum.Enum):
     DRAFT = "DRAFT"

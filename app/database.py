@@ -48,43 +48,43 @@ def init_db():
                     "email": "admin@kart.com",
                     "username": "admin",
                     "password": "admin123",
-                    "role": "ADMIN"
+                    "role": models.UserRole.ADMIN
                 },
                 {
                     "email": "pm1@kart.com",
                     "username": "pm1",
                     "password": "manager123",
-                    "role": "USER"
+                    "role": models.UserRole.USER
                 },
                 {
                     "email": "pm2@kart.com",
                     "username": "pm2",
                     "password": "manager123",
-                    "role": "USER"
+                    "role": models.UserRole.USER
                 },
                 {
                     "email": "analyst1@kart.com",
                     "username": "analyst1",
                     "password": "analyst123",
-                    "role": "USER"
+                    "role": models.UserRole.USER
                 },
                 {
                     "email": "analyst2@kart.com",
                     "username": "analyst2",
                     "password": "analyst123",
-                    "role": "USER"
+                    "role": models.UserRole.USER
                 },
                 {
                     "email": "viewer1@kart.com",
                     "username": "viewer1",
                     "password": "viewer123",
-                    "role": "USER"
+                    "role": models.UserRole.USER
                 },
                 {
                     "email": "viewer2@kart.com",
                     "username": "viewer2",
                     "password": "viewer123",
-                    "role": "USER"
+                    "role": models.UserRole.USER
                 }
             ]
             

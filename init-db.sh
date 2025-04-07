@@ -18,10 +18,18 @@ psql -v ON_ERROR_STOP=1 -U kart_admin -d kart_database -f /sql/triggers/01_trigg
 psql -v ON_ERROR_STOP=1 -U kart_admin -d kart_database -f /sql/views/01_views.sql
 psql -v ON_ERROR_STOP=1 -U kart_admin -d kart_database -f /sql/backup/01_backup.sql
 
-echo "Database initialization complete!"
+# Insert test data
+echo "Inserting test data..."
+if ! psql -v ON_ERROR_STOP=1 -U kart_admin -d kart_database -f /sql/test/01_test_data.sql; then
+    echo "Error: Failed to insert test data"
+    exit 1
+fi
 
-# Run tests
-echo "Running database tests..."
-psql -v ON_ERROR_STOP=1 -U kart_admin -d kart_database -f /sql/test/01_test.sql
+# Validate test data
+echo "Validating test data..."
+if ! psql -v ON_ERROR_STOP=1 -U kart_admin -d kart_database -f /sql/test/02_validate_data.sql; then
+    echo "Error: Test data validation failed"
+    exit 1
+fi
 
-echo "All tests completed!" 
+echo "Database initialization complete!" 
