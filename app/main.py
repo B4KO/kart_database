@@ -4,12 +4,9 @@ from sqlalchemy.orm import Session
 from typing import List
 import uvicorn
 
-from .database import SessionLocal, engine
+from .database import SessionLocal, engine, get_db
 from . import models, schemas, crud
 from .auth import get_current_user
-
-# Create database tables
-models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="KART Database API",
@@ -25,14 +22,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Dependency
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 @app.get("/")
 async def root():
@@ -127,4 +116,6 @@ async def login_for_access_token(
     return {"access_token": access_token, "token_type": "bearer"}
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True) 
+    # Create database tables
+    models.Base.metadata.create_all(bind=engine)
+    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True) 
