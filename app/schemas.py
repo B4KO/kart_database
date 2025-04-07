@@ -1,7 +1,7 @@
 from pydantic import BaseModel, EmailStr
 from typing import Optional, List
 from datetime import datetime
-from .models import ProjectStatus
+from .models import ProjectStatus, ProjectSector, ProjectManagementLevel
 
 # User schemas
 class UserBase(BaseModel):
@@ -14,7 +14,6 @@ class UserCreate(UserBase):
 
 class User(UserBase):
     id: int
-    is_active: bool
 
     class Config:
         from_attributes = True
@@ -27,94 +26,79 @@ class Token(BaseModel):
 class TokenData(BaseModel):
     username: Optional[str] = None
 
-class LoginForm(BaseModel):
-    username: str
-    password: str
-
 # Project schemas
 class ProjectBase(BaseModel):
-    name: str
+    title: str
     description: Optional[str] = None
-    status: ProjectStatus
-    start_date: datetime
-    end_date: Optional[datetime] = None
-    department_id: int
-    digital_network_id: int
-    address_id: int
-    contact_id: int
+    status: ProjectStatus = ProjectStatus.DRAFT
+    start_year: int
+    end_year: Optional[int] = None
+    sector: ProjectSector
+    project_link: Optional[str] = None
+    notes: Optional[str] = None
+    managment_level: ProjectManagementLevel
 
 class ProjectCreate(ProjectBase):
     pass
 
 class ProjectUpdate(BaseModel):
-    name: Optional[str] = None
+    title: Optional[str] = None
     description: Optional[str] = None
     status: Optional[ProjectStatus] = None
-    start_date: Optional[datetime] = None
-    end_date: Optional[datetime] = None
-    department_id: Optional[int] = None
-    digital_network_id: Optional[int] = None
-    address_id: Optional[int] = None
-    contact_id: Optional[int] = None
-    is_active: Optional[bool] = None
+    start_year: Optional[int] = None
+    end_year: Optional[int] = None
+    sector: Optional[ProjectSector] = None
+    project_link: Optional[str] = None
+    notes: Optional[str] = None
+    managment_level: Optional[ProjectManagementLevel] = None
 
 class Project(ProjectBase):
     id: int
-    is_active: bool
-    created_at: datetime
-    updated_at: datetime
-    organizations: List["Organization"] = []
-
-    class Config:
-        from_attributes = True
-
-# Organization schemas
-class OrganizationBase(BaseModel):
-    name: str
-    description: Optional[str] = None
-    owner_type_id: int
-
-class OrganizationCreate(OrganizationBase):
-    pass
-
-class Organization(OrganizationBase):
-    id: int
-    is_active: bool
-    created_at: datetime
-    updated_at: datetime
-    projects: List[Project] = []
-
-    class Config:
-        from_attributes = True
-
-# Department schemas
-class DepartmentBase(BaseModel):
-    name: str
-    description: Optional[str] = None
-
-class DepartmentCreate(DepartmentBase):
-    pass
-
-class Department(DepartmentBase):
-    id: int
-    is_active: bool
     created_at: datetime
     updated_at: datetime
 
     class Config:
         from_attributes = True
 
-# DigitalNetwork schemas
-class DigitalNetworkBase(BaseModel):
+# Owner schemas
+class OwnerBase(BaseModel):
     name: str
     description: Optional[str] = None
 
-class DigitalNetworkCreate(DigitalNetworkBase):
+class OwnerCreate(OwnerBase):
     pass
 
-class DigitalNetwork(DigitalNetworkBase):
+class Owner(OwnerBase):
     id: int
-    is_active: bool
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+# Cooperator schemas
+class CooperatorBase(BaseModel):
+    name: str
+
+class CooperatorCreate(CooperatorBase):
+    pass
+
+class Cooperator(CooperatorBase):
+    id: int
+
+    class Config:
+        from_attributes = True
+
+# Benefit schemas
+class BenefitBase(BaseModel):
+    name: str
+    description: Optional[str] = None
+
+class BenefitCreate(BenefitBase):
+    pass
+
+class Benefit(BenefitBase):
+    id: int
     created_at: datetime
     updated_at: datetime
 
@@ -123,20 +107,15 @@ class DigitalNetwork(DigitalNetworkBase):
 
 # Address schemas
 class AddressBase(BaseModel):
-    street: str
     city: str
-    state: str
+    county: str
     postal_code: str
-    country: str
 
 class AddressCreate(AddressBase):
     pass
 
 class Address(AddressBase):
     id: int
-    is_active: bool
-    created_at: datetime
-    updated_at: datetime
 
     class Config:
         from_attributes = True
@@ -145,33 +124,29 @@ class Address(AddressBase):
 class ContactBase(BaseModel):
     name: str
     email: EmailStr
-    phone: str
 
 class ContactCreate(ContactBase):
     pass
 
 class Contact(ContactBase):
     id: int
-    is_active: bool
     created_at: datetime
     updated_at: datetime
 
     class Config:
         from_attributes = True
 
-# OwnerType schemas
-class OwnerTypeBase(BaseModel):
+# Location schemas
+class LocationBase(BaseModel):
     name: str
     description: Optional[str] = None
+    address_id: int
 
-class OwnerTypeCreate(OwnerTypeBase):
+class LocationCreate(LocationBase):
     pass
 
-class OwnerType(OwnerTypeBase):
+class Location(LocationBase):
     id: int
-    is_active: bool
-    created_at: datetime
-    updated_at: datetime
 
     class Config:
         from_attributes = True 

@@ -102,68 +102,68 @@ def delete_project(db: Session, project_id: int):
     db.commit()
     return True
 
-# Organization operations
-def get_organization(db: Session, organization_id: int):
-    return db.query(models.Organization).filter(models.Organization.id == organization_id).first()
+# Owner operations
+def get_owner(db: Session, owner_id: int):
+    return db.query(models.Owner).filter(models.Owner.id == owner_id).first()
 
-def get_organizations(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(models.Organization).offset(skip).limit(limit).all()
+def get_owners(db: Session, skip: int = 0, limit: int = 100):
+    return db.query(models.Owner).offset(skip).limit(limit).all()
 
-def create_organization(db: Session, organization: schemas.OrganizationCreate):
-    db_organization = models.Organization(**organization.dict())
-    db.add(db_organization)
+def create_owner(db: Session, owner: schemas.OwnerCreate):
+    db_owner = models.Owner(**owner.dict())
+    db.add(db_owner)
     db.commit()
-    db.refresh(db_organization)
-    return db_organization
+    db.refresh(db_owner)
+    return db_owner
 
-def update_organization(db: Session, organization_id: int, organization: schemas.OrganizationCreate):
-    db_organization = get_organization(db, organization_id)
-    if not db_organization:
+def update_owner(db: Session, owner_id: int, owner: schemas.OwnerCreate):
+    db_owner = get_owner(db, owner_id)
+    if not db_owner:
         return None
     
-    for field, value in organization.dict().items():
-        setattr(db_organization, field, value)
+    for field, value in owner.dict().items():
+        setattr(db_owner, field, value)
     
     db.commit()
-    db.refresh(db_organization)
-    return db_organization
+    db.refresh(db_owner)
+    return db_owner
 
-def delete_organization(db: Session, organization_id: int):
-    db_organization = get_organization(db, organization_id)
-    if not db_organization:
+def delete_owner(db: Session, owner_id: int):
+    db_owner = get_owner(db, owner_id)
+    if not db_owner:
         return False
     
-    db.delete(db_organization)
+    db.delete(db_owner)
     db.commit()
     return True
 
-# Department operations
-def get_department(db: Session, department_id: int):
-    return db.query(models.Department).filter(models.Department.id == department_id).first()
+# Cooperator operations
+def get_cooperator(db: Session, cooperator_id: int):
+    return db.query(models.Cooperator).filter(models.Cooperator.id == cooperator_id).first()
 
-def get_departments(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(models.Department).offset(skip).limit(limit).all()
+def get_cooperators(db: Session, skip: int = 0, limit: int = 100):
+    return db.query(models.Cooperator).offset(skip).limit(limit).all()
 
-def create_department(db: Session, department: schemas.DepartmentCreate):
-    db_department = models.Department(**department.dict())
-    db.add(db_department)
+def create_cooperator(db: Session, cooperator: schemas.CooperatorCreate):
+    db_cooperator = models.Cooperator(**cooperator.dict())
+    db.add(db_cooperator)
     db.commit()
-    db.refresh(db_department)
-    return db_department
+    db.refresh(db_cooperator)
+    return db_cooperator
 
-# DigitalNetwork operations
-def get_digital_network(db: Session, network_id: int):
-    return db.query(models.DigitalNetwork).filter(models.DigitalNetwork.id == network_id).first()
+# Benefit operations
+def get_benefit(db: Session, benefit_id: int):
+    return db.query(models.Benefit).filter(models.Benefit.id == benefit_id).first()
 
-def get_digital_networks(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(models.DigitalNetwork).offset(skip).limit(limit).all()
+def get_benefits(db: Session, skip: int = 0, limit: int = 100):
+    return db.query(models.Benefit).offset(skip).limit(limit).all()
 
-def create_digital_network(db: Session, network: schemas.DigitalNetworkCreate):
-    db_network = models.DigitalNetwork(**network.dict())
-    db.add(db_network)
+def create_benefit(db: Session, benefit: schemas.BenefitCreate):
+    db_benefit = models.Benefit(**benefit.dict())
+    db.add(db_benefit)
     db.commit()
-    db.refresh(db_network)
-    return db_network
+    db.refresh(db_benefit)
+    return db_benefit
 
 # Address operations
 def get_address(db: Session, address_id: int):
@@ -193,16 +193,16 @@ def create_contact(db: Session, contact: schemas.ContactCreate):
     db.refresh(db_contact)
     return db_contact
 
-# OwnerType operations
-def get_owner_type(db: Session, owner_type_id: int):
-    return db.query(models.OwnerType).filter(models.OwnerType.id == owner_type_id).first()
+# Location operations
+def get_location(db: Session, location_id: int):
+    return db.query(models.Location).filter(models.Location.id == location_id).first()
 
-def get_owner_types(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(models.OwnerType).offset(skip).limit(limit).all()
+def get_locations(db: Session, skip: int = 0, limit: int = 100):
+    return db.query(models.Location).offset(skip).limit(limit).all()
 
-def create_owner_type(db: Session, owner_type: schemas.OwnerTypeCreate):
-    db_owner_type = models.OwnerType(**owner_type.dict())
-    db.add(db_owner_type)
+def create_location(db: Session, location: schemas.LocationCreate):
+    db_location = models.Location(**location.dict())
+    db.add(db_location)
     db.commit()
-    db.refresh(db_owner_type)
-    return db_owner_type 
+    db.refresh(db_location)
+    return db_location 

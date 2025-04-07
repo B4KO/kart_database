@@ -37,8 +37,7 @@ def override_get_current_user():
         username="testuser",
         email="test@example.com",
         hashed_password="hashed_password",
-        is_active=True,
-        role="kart_admin"
+        role="ADMIN"
     )
 
 @pytest.fixture(scope="session")

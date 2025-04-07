@@ -8,8 +8,7 @@ def test_login_for_access_token(client, db_session):
         username="testuser",
         email="test@example.com",
         hashed_password=get_password_hash("testpassword"),
-        is_active=True,
-        role="kart_admin"
+        role="ADMIN"
     )
     db_session.add(user)
     db_session.commit()
@@ -31,8 +30,7 @@ def test_login_invalid_credentials(client, db_session):
         username="testuser",
         email="test@example.com",
         hashed_password=get_password_hash("testpassword"),
-        is_active=True,
-        role="kart_admin"
+        role="ADMIN"
     )
     db_session.add(user)
     db_session.commit()
@@ -46,20 +44,9 @@ def test_login_invalid_credentials(client, db_session):
     assert response.status_code == 401
     assert response.json()["detail"] == "Incorrect username or password"
 
-def test_login_inactive_user(client, db_session):
-    # Create an inactive test user
-    user = models.User(
-        username="inactiveuser",
-        email="inactive@example.com",
-        hashed_password=get_password_hash("testpassword"),
-        is_active=False,
-        role="kart_admin"
-    )
-    db_session.add(user)
-    db_session.commit()
-    
+def test_login_nonexistent_user(client, db_session):
     login_data = {
-        "username": "inactiveuser",
+        "username": "nonexistentuser",
         "password": "testpassword"
     }
     

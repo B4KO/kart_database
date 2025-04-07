@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import FastAPI, Depends, HTTPException, status, Form
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from typing import List
@@ -80,32 +80,162 @@ def delete_project(
         raise HTTPException(status_code=404, detail="Project not found")
     return {"message": "Project deleted successfully"}
 
-# Organizations endpoints
-@app.get("/organizations/", response_model=List[schemas.Organization])
-def read_organizations(
+# Owners endpoints
+@app.get("/owners/", response_model=List[schemas.Owner])
+def read_owners(
     skip: int = 0,
     limit: int = 100,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
-    organizations = crud.get_organizations(db, skip=skip, limit=limit)
-    return organizations
+    owners = crud.get_owners(db, skip=skip, limit=limit)
+    return owners
 
-@app.post("/organizations/", response_model=schemas.Organization)
-def create_organization(
-    organization: schemas.OrganizationCreate,
+@app.post("/owners/", response_model=schemas.Owner)
+def create_owner(
+    owner: schemas.OwnerCreate,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
-    return crud.create_organization(db=db, organization=organization)
+    return crud.create_owner(db=db, owner=owner)
+
+@app.get("/owners/{owner_id}", response_model=schemas.Owner)
+def read_owner(
+    owner_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    owner = crud.get_owner(db, owner_id=owner_id)
+    if owner is None:
+        raise HTTPException(status_code=404, detail="Owner not found")
+    return owner
+
+@app.put("/owners/{owner_id}", response_model=schemas.Owner)
+def update_owner(
+    owner_id: int,
+    owner: schemas.OwnerCreate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    updated_owner = crud.update_owner(db, owner_id=owner_id, owner=owner)
+    if updated_owner is None:
+        raise HTTPException(status_code=404, detail="Owner not found")
+    return updated_owner
+
+@app.delete("/owners/{owner_id}")
+def delete_owner(
+    owner_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    success = crud.delete_owner(db, owner_id=owner_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Owner not found")
+    return {"message": "Owner deleted successfully"}
+
+# Cooperators endpoints
+@app.get("/cooperators/", response_model=List[schemas.Cooperator])
+def read_cooperators(
+    skip: int = 0,
+    limit: int = 100,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    cooperators = crud.get_cooperators(db, skip=skip, limit=limit)
+    return cooperators
+
+@app.post("/cooperators/", response_model=schemas.Cooperator)
+def create_cooperator(
+    cooperator: schemas.CooperatorCreate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    return crud.create_cooperator(db=db, cooperator=cooperator)
+
+# Benefits endpoints
+@app.get("/benefits/", response_model=List[schemas.Benefit])
+def read_benefits(
+    skip: int = 0,
+    limit: int = 100,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    benefits = crud.get_benefits(db, skip=skip, limit=limit)
+    return benefits
+
+@app.post("/benefits/", response_model=schemas.Benefit)
+def create_benefit(
+    benefit: schemas.BenefitCreate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    return crud.create_benefit(db=db, benefit=benefit)
+
+# Addresses endpoints
+@app.get("/addresses/", response_model=List[schemas.Address])
+def read_addresses(
+    skip: int = 0,
+    limit: int = 100,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    addresses = crud.get_addresses(db, skip=skip, limit=limit)
+    return addresses
+
+@app.post("/addresses/", response_model=schemas.Address)
+def create_address(
+    address: schemas.AddressCreate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    return crud.create_address(db=db, address=address)
+
+# Contacts endpoints
+@app.get("/contacts/", response_model=List[schemas.Contact])
+def read_contacts(
+    skip: int = 0,
+    limit: int = 100,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    contacts = crud.get_contacts(db, skip=skip, limit=limit)
+    return contacts
+
+@app.post("/contacts/", response_model=schemas.Contact)
+def create_contact(
+    contact: schemas.ContactCreate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    return crud.create_contact(db=db, contact=contact)
+
+# Locations endpoints
+@app.get("/locations/", response_model=List[schemas.Location])
+def read_locations(
+    skip: int = 0,
+    limit: int = 100,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    locations = crud.get_locations(db, skip=skip, limit=limit)
+    return locations
+
+@app.post("/locations/", response_model=schemas.Location)
+def create_location(
+    location: schemas.LocationCreate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    return crud.create_location(db=db, location=location)
 
 # Authentication endpoints
 @app.post("/token", response_model=schemas.Token)
 async def login_for_access_token(
-    form_data: schemas.LoginForm = Depends(),
+    username: str = Form(...),
+    password: str = Form(...),
     db: Session = Depends(get_db)
 ):
-    user = crud.authenticate_user(db, form_data.username, form_data.password)
+    user = crud.authenticate_user(db, username, password)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
