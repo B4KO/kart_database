@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, ConfigDict
 from typing import Optional, List
 from datetime import datetime
 from .models import ProjectStatus, ProjectSector, ProjectManagementLevel
@@ -14,9 +14,7 @@ class UserCreate(UserBase):
 
 class User(UserBase):
     id: int
-
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 # Token schemas
 class Token(BaseModel):
@@ -56,9 +54,7 @@ class Project(ProjectBase):
     id: int
     created_at: datetime
     updated_at: datetime
-
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 # Owner schemas
 class OwnerBase(BaseModel):
@@ -72,9 +68,7 @@ class Owner(OwnerBase):
     id: int
     created_at: datetime
     updated_at: datetime
-
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 # Cooperator schemas
 class CooperatorBase(BaseModel):
@@ -85,9 +79,7 @@ class CooperatorCreate(CooperatorBase):
 
 class Cooperator(CooperatorBase):
     id: int
-
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 # Benefit schemas
 class BenefitBase(BaseModel):
@@ -101,9 +93,7 @@ class Benefit(BenefitBase):
     id: int
     created_at: datetime
     updated_at: datetime
-
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 # Address schemas
 class AddressBase(BaseModel):
@@ -116,9 +106,7 @@ class AddressCreate(AddressBase):
 
 class Address(AddressBase):
     id: int
-
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 # Contact schemas
 class ContactBase(BaseModel):
@@ -132,9 +120,7 @@ class Contact(ContactBase):
     id: int
     created_at: datetime
     updated_at: datetime
-
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 # Location schemas
 class LocationBase(BaseModel):
@@ -147,6 +133,4 @@ class LocationCreate(LocationBase):
 
 class Location(LocationBase):
     id: int
-
-    class Config:
-        from_attributes = True 
+    model_config = ConfigDict(from_attributes=True) 

@@ -3,15 +3,26 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from typing import List
 import uvicorn
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from contextlib import asynccontextmanager
 
-from .database import SessionLocal, engine, get_db
+from .database import SessionLocal, engine, get_db, init_db
 from . import models, schemas, crud
 from .auth import get_current_user
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    init_db()
+    yield
+    # Shutdown
+    pass
 
 app = FastAPI(
     title="KART Database API",
     description="API for managing KART database operations",
-    version="1.0.0"
+    version="1.0.0",
+    lifespan=lifespan
 )
 
 # Configure CORS

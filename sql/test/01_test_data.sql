@@ -1,8 +1,3 @@
--- Insert test users
-INSERT INTO users (email, username, hashed_password, role) VALUES
-('admin@kart.com', 'admin', '$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW', 'ADMIN'),
-('user@kart.com', 'user', '$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW', 'USER');
-
 -- Insert test addresses
 INSERT INTO addresses (city, county, postal_code) VALUES
 ('Bucharest', 'Bucharest', '010101'),

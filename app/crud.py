@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from . import models, schemas
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from typing import Optional
@@ -22,12 +22,12 @@ def verify_password(plain_password, hashed_password):
 def get_password_hash(password):
     return pwd_context.hash(password)
 
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
+def create_access_token(data: dict, expires_delta: timedelta | None = None):
     to_encode = data.copy()
     if expires_delta:
-        expire = datetime.utcnow() + expires_delta
+        expire = datetime.now(UTC) + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(minutes=15)
+        expire = datetime.now(UTC) + timedelta(minutes=15)
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
@@ -74,21 +74,19 @@ def get_projects(db: Session, skip: int = 0, limit: int = 100):
     return db.query(models.Project).offset(skip).limit(limit).all()
 
 def create_project(db: Session, project: schemas.ProjectCreate):
-    db_project = models.Project(**project.dict())
+    db_project = models.Project(**project.model_dump())
     db.add(db_project)
     db.commit()
     db.refresh(db_project)
     return db_project
 
 def update_project(db: Session, project_id: int, project: schemas.ProjectUpdate):
-    db_project = get_project(db, project_id)
-    if not db_project:
+    db_project = db.query(models.Project).filter(models.Project.id == project_id).first()
+    if db_project is None:
         return None
-    
-    update_data = project.dict(exclude_unset=True)
+    update_data = project.model_dump(exclude_unset=True)
     for field, value in update_data.items():
         setattr(db_project, field, value)
-    
     db.commit()
     db.refresh(db_project)
     return db_project
@@ -110,7 +108,7 @@ def get_owners(db: Session, skip: int = 0, limit: int = 100):
     return db.query(models.Owner).offset(skip).limit(limit).all()
 
 def create_owner(db: Session, owner: schemas.OwnerCreate):
-    db_owner = models.Owner(**owner.dict())
+    db_owner = models.Owner(**owner.model_dump())
     db.add(db_owner)
     db.commit()
     db.refresh(db_owner)
