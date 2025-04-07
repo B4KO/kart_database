@@ -11,12 +11,12 @@ CREATE TABLE audit_log (
 );
 
 CREATE TABLE users (
-    id SERIAL PRIMARY KEY,
+    id SERIAL PRIMARY KEY,¨
     email VARCHAR(255) NOT NULL UNIQUE,
     username VARCHAR(255) NOT NULL UNIQUE,
     hashed_password VARCHAR(255) NOT NULL,
     role roles NOT NULL
-);
+)
 
 -- Table for Addresses
 CREATE TABLE addresses (
